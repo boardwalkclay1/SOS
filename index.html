@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TogetherSafe</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- App Style -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0d0d0d;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      margin-bottom: 10px;
+    }
+
+    p {
+      opacity: 0.7;
+      margin-bottom: 30px;
+    }
+
+    input {
+      width: 80%;
+      padding: 15px;
+      border-radius: 12px;
+      border: none;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+    }
+
+    button {
+      width: 80%;
+      padding: 15px;
+      background: #ff2d55;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ff4d6d;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>TogetherSafe</h1>
+  <p>Your group. Your night. Your safety.</p>
+
+  <input id="phoneInput" type="tel" placeholder="Enter your phone number" />
+
+  <button onclick="continueApp()">Continue</button>
+
+  <script>
+    // Load profile if exists
+    const savedProfile = localStorage.getItem("userProfile");
+    if (savedProfile) {
+      window.location.href = "home.html";
+    }
+
+    function continueApp() {
+      const phone = document.getElementById("phoneInput").value.trim();
+      if (!phone) {
+        alert("Please enter your phone number");
+        return;
+      }
+
+      // Save minimal profile
+      localStorage.setItem("userProfile", JSON.stringify({
+        phone: phone,
+        name: "",
+        avatar: "",
+        trustedContacts: []
+      }));
+
+      window.location.href = "profile.html";
+    }
+
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
+    }
+  </script>
+
+</body>
+</html>
