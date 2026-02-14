@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TogetherSafe – Home</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0d0d0d;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid #222;
+    }
+    main {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .group-status {
+      margin-bottom: 20px;
+    }
+    .member {
+      padding: 12px;
+      border-radius: 10px;
+      background: #151515;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+    }
+    .in-range { background: #163d1f; color: #7dff9a; }
+    .weak { background: #3d3516; color: #ffe27d; }
+    .out-range { background: #3d1616; color: #ff7d7d; }
+    .big-sos {
+      width: 100%;
+      padding: 18px;
+      border-radius: 999px;
+      background: #ff2d55;
+      border: none;
+      color: #fff;
+      font-size: 1.3rem;
+      margin-top: 10px;
+    }
+    nav {
+      display: flex;
+      border-top: 1px solid #222;
+    }
+    nav button {
+      flex: 1;
+      padding: 12px;
+      background: #0d0d0d;
+      color: #fff;
+      border: none;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Tonight’s Group</h2>
+    <small id="groupNameLabel"></small>
+  </header>
+
+  <main>
+    <section class="group-status">
+      <button onclick="goToGroup()">Join / Manage Group</button>
+    </section>
+
+    <section id="membersList">
+      <!-- Members injected here -->
+    </section>
+
+    <button class="big-sos" onclick="goToSOS()">SOS</button>
+  </main>
+
+  <nav>
+    <button onclick="goToHome()">Home</button>
+    <button onclick="goToSOS()">SOS</button>
+    <button onclick="goToProfile()">Profile</button>
+    <button onclick="goToSettings()">Settings</button>
+  </nav>
+
+  <script>
+    function loadGroup() {
+      const groupData = JSON.parse(localStorage.getItem("groupData") || "null");
+      const membersList = document.getElementById("membersList");
+      const groupNameLabel = document.getElementById("groupNameLabel");
+
+      membersList.innerHTML = "";
+
+      if (!groupData) {
+        groupNameLabel.textContent = "No active group";
+        return;
+      }
+
+      groupNameLabel.textContent = groupData.name || "Tonight’s Group";
+
+      (groupData.members || []).forEach(member => {
+        const div = document.createElement("div");
+        div.className = "member";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = member.name || member.phone || "Unknown";
+
+        const badge = document.createElement("span");
+        badge.classList.add("badge");
+        if (member.rangeStatus === "in_range") {
+          badge.classList.add("in-range");
+          badge.textContent = "In range";
+        } else if (member.rangeStatus === "weak") {
+          badge.classList.add("weak");
+          badge.textContent = "Weak";
+        } else {
+          badge.classList.add("out-range");
+          badge.textContent = "Out of range";
+        }
+
+        div.appendChild(nameSpan);
+        div.appendChild(badge);
+        membersList.appendChild(div);
+      });
+    }
+
+    function goToHome() { window.location.href = "home.html"; }
+    function goToSOS() { window.location.href = "sos.html"; }
+    function goToProfile() { window.location.href = "profile.html"; }
+    function goToSettings() { window.location.href = "settings.html"; }
+    function goToGroup() { window.location.href = "group.html"; }
+
+    loadGroup();
+  </script>
+</body>
+</html>
