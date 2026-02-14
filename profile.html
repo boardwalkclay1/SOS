@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TogetherSafe – Profile</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0d0d0d;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid #222;
+    }
+    main {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    input, button, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    button {
+      background: #ff2d55;
+      color: #fff;
+      cursor: pointer;
+    }
+    nav {
+      display: flex;
+      border-top: 1px solid #222;
+    }
+    nav button {
+      flex: 1;
+      padding: 12px;
+      background: #0d0d0d;
+      color: #fff;
+      border: none;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Profile</h2>
+  </header>
+
+  <main>
+    <section>
+      <h3>Your info</h3>
+      <input id="nameInput" type="text" placeholder="Your name" />
+      <input id="phoneInput" type="tel" placeholder="Your phone number" />
+      <input id="avatarInput" type="text" placeholder="Avatar URL (optional)" />
+    </section>
+
+    <section>
+      <h3>Trusted contacts (comma-separated phones)</h3>
+      <textarea id="trustedInput" rows="3" placeholder="+1..., +1..."></textarea>
+    </section>
+
+    <button onclick="saveProfile()">Save profile</button>
+  </main>
+
+  <nav>
+    <button onclick="goToHome()">Home</button>
+    <button onclick="goToSOS()">SOS</button>
+    <button onclick="goToProfile()">Profile</button>
+    <button onclick="goToSettings()">Settings</button>
+  </nav>
+
+  <script>
+    function loadProfile() {
+      const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+      document.getElementById("nameInput").value = profile.name || "";
+      document.getElementById("phoneInput").value = profile.phone || "";
+      document.getElementById("avatarInput").value = profile.avatar || "";
+      document.getElementById("trustedInput").value =
+        (profile.trustedContacts || []).join(", ");
+    }
+
+    function saveProfile() {
+      const name = document.getElementById("nameInput").value.trim();
+      const phone = document.getElementById("phoneInput").value.trim();
+      const avatar = document.getElementById("avatarInput").value.trim();
+      const trustedRaw = document.getElementById("trustedInput").value.trim();
+
+      if (!phone) {
+        alert("Phone number is required.");
+        return;
+      }
+
+      const trustedContacts = trustedRaw
+        ? trustedRaw.split(",").map(t => t.trim()).filter(Boolean)
+        : [];
+
+      const profile = {
+        name,
+        phone,
+        avatar,
+        trustedContacts
+      };
+
+      localStorage.setItem("userProfile", JSON.stringify(profile));
+      alert("Profile saved.");
+    }
+
+    function goToHome() { window.location.href = "home.html"; }
+    function goToSOS() { window.location.href = "sos.html"; }
+    function goToProfile() { window.location.href = "profile.html"; }
+    function goToSettings() { window.location.href = "settings.html"; }
+
+    loadProfile();
+  </script>
+</body>
+</html>
