@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TogetherSafe – Group</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0d0d0d;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid #222;
+    }
+    main {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    button {
+      background: #ff2d55;
+      color: #fff;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #222;
+    }
+    .member {
+      padding: 10px;
+      border-radius: 8px;
+      background: #151515;
+      margin-bottom: 8px;
+    }
+    nav {
+      display: flex;
+      border-top: 1px solid #222;
+    }
+    nav button {
+      flex: 1;
+      padding: 12px;
+      background: #0d0d0d;
+      color: #fff;
+      border: none;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Group</h2>
+    <small id="groupNameLabel"></small>
+  </header>
+
+  <main>
+    <section>
+      <h3>Create / Rename Group</h3>
+      <input id="groupNameInput" type="text" placeholder="Tonight’s group name" />
+      <button onclick="saveGroup()">Save Group</button>
+    </section>
+
+    <section>
+      <h3>Members (local demo)</h3>
+      <button class="secondary" onclick="addSelf()">Add myself to group</button>
+      <div id="membersList"></div>
+    </section>
+
+    <section>
+      <h3>Share</h3>
+      <button class="secondary" onclick="copyInvite()">Copy invite link (placeholder)</button>
+    </section>
+
+    <section>
+      <h3>Danger zone</h3>
+      <button class="secondary" onclick="leaveGroup()">Leave group</button>
+    </section>
+  </main>
+
+  <nav>
+    <button onclick="goToHome()">Home</button>
+    <button onclick="goToSOS()">SOS</button>
+    <button onclick="goToProfile()">Profile</button>
+    <button onclick="goToSettings()">Settings</button>
+  </nav>
+
+  <script>
+    function loadGroup() {
+      const groupData = JSON.parse(localStorage.getItem("groupData") || "null");
+      const groupNameLabel = document.getElementById("groupNameLabel");
+      const groupNameInput = document.getElementById("groupNameInput");
+      const membersList = document.getElementById("membersList");
+
+      membersList.innerHTML = "";
+
+      if (!groupData) {
+        groupNameLabel.textContent = "No active group";
+        return;
+      }
+
+      groupNameLabel.textContent = groupData.name || "Tonight’s Group";
+      groupNameInput.value = groupData.name || "";
+
+      (groupData.members || []).forEach(member => {
+        const div = document.createElement("div");
+        div.className = "member";
+        div.textContent = member.name || member.phone || "Unknown";
+        membersList.appendChild(div);
+      });
+    }
+
+    function saveGroup() {
+      const name = document.getElementById("groupNameInput").value.trim();
+      if (!name) {
+        alert("Enter a group name");
+        return;
+      }
+
+      const existing = JSON.parse(localStorage.getItem("groupData") || "{}");
+      const updated = {
+        ...existing,
+        id: existing.id || Date.now().toString(),
+        name,
+        members: existing.members || [],
+        createdAt: existing.createdAt || new Date().toISOString()
+      };
+
+      localStorage.setItem("groupData", JSON.stringify(updated));
+      loadGroup();
+    }
+
+    function addSelf() {
+      const userProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+      if (!userProfile.phone) {
+        alert("Set up your profile first.");
+        return;
+      }
+
+      const existing = JSON.parse(localStorage.getItem("groupData") || "{}");
+      if (!existing.id) {
+        alert("Create a group first.");
+        return;
+      }
+
+      const members = existing.members || [];
+      const already = members.find(m => m.phone === userProfile.phone);
+      if (!already) {
+        members.push({
+          phone: userProfile.phone,
+          name: userProfile.name || "Me",
+          rangeStatus: "in_range"
+        });
+      }
+
+      existing.members = members;
+      localStorage.setItem("groupData", JSON.stringify(existing));
+      loadGroup();
+    }
+
+    function copyInvite() {
+      alert("Invite link placeholder – integrate backend later.");
+    }
+
+    function leaveGroup() {
+      if (confirm("Leave current group?")) {
+        localStorage.removeItem("groupData");
+        loadGroup();
+      }
+    }
+
+    function goToHome() { window.location.href = "home.html"; }
+    function goToSOS() { window.location.href = "sos.html"; }
+    function goToProfile() { window.location.href = "profile.html"; }
+    function goToSettings() { window.location.href = "settings.html"; }
+
+    loadGroup();
+  </script>
+</body>
+</html>
