@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TogetherSafe – SOS</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0d0d0d;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid #222;
+    }
+    main {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .sos-card {
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: none;
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      cursor: pointer;
+    }
+    .sos-title {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+    .sos-sub {
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+    .lvl1 { background: #163d1f; }
+    .lvl2 { background: #3d3516; }
+    .lvl3 { background: #3d1616; }
+    .lvl4 { background: #5b1010; }
+    .lvl5 { background: #102b5b; }
+    .lvl6 { background: #153b4a; }
+    nav {
+      display: flex;
+      border-top: 1px solid #222;
+    }
+    nav button {
+      flex: 1;
+      padding: 12px;
+      background: #0d0d0d;
+      color: #fff;
+      border: none;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>SOS</h2>
+    <small>Choose what you need right now</small>
+  </header>
+
+  <main>
+    <button class="sos-card lvl1" onclick="sendSOS('bathroom_rescue')">
+      <div class="sos-title">Bathroom rescue</div>
+      <div class="sos-sub">Quiet alert. Ask your group to come get you.</div>
+    </button>
+
+    <button class="sos-card lvl2" onclick="sendSOS('check_on_me')">
+      <div class="sos-title">Check on me</div>
+      <div class="sos-sub">Set a timer. If you don’t respond, your group is alerted.</div>
+    </button>
+
+    <button class="sos-card lvl3" onclick="sendSOS('too_drunk')">
+      <div class="sos-title">Too drunk / need help</div>
+      <div class="sos-sub">High-priority alert. You need support now.</div>
+    </button>
+
+    <button class="sos-card lvl4" onclick="confirmRoofied()">
+      <div class="sos-title">Roofied / medical danger</div>
+      <div class="sos-sub">Critical alert. Loud, repeated, and escalated.</div>
+    </button>
+
+    <button class="sos-card lvl5" onclick="sendSOS('call_me')">
+      <div class="sos-title">Call me in 2 minutes</div>
+      <div class="sos-sub">Ask someone to call you as an exit.</div>
+    </button>
+
+    <button class="sos-card lvl6" onclick="sendSOS('going_home')">
+      <div class="sos-title">I’m going home</div>
+      <div class="sos-sub">Let your group know you’re heading home.</div>
+    </button>
+  </main>
+
+  <nav>
+    <button onclick="goToHome()">Home</button>
+    <button onclick="goToSOS()">SOS</button>
+    <button onclick="goToProfile()">Profile</button>
+    <button onclick="goToSettings()">Settings</button>
+  </nav>
+
+  <script>
+    function sendSOS(type) {
+      const sosEvents = JSON.parse(localStorage.getItem("sosEvents") || "[]");
+      const userProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+
+      sosEvents.push({
+        id: Date.now(),
+        type,
+        sender: userProfile.phone || "unknown",
+        createdAt: new Date().toISOString()
+      });
+
+      localStorage.setItem("sosEvents", JSON.stringify(sosEvents));
+      alert("SOS sent: " + type.replace("_", " "));
+    }
+
+    function confirmRoofied() {
+      if (confirm("Send critical SOS: Roofied / medical danger?")) {
+        sendSOS("roofied");
+      }
+    }
+
+    function goToHome() { window.location.href = "home.html"; }
+    function goToSOS() { window.location.href = "sos.html"; }
+    function goToProfile() { window.location.href = "profile.html"; }
+    function goToSettings() { window.location.href = "settings.html"; }
+  </script>
+</body>
+</html>
