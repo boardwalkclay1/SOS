@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TogetherSafe – Settings</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0d0d0d;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid #222;
+    }
+    main {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      margin-top: 10px;
+      font-size: 1rem;
+      background: #ff2d55;
+      color: #fff;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #222;
+    }
+    nav {
+      display: flex;
+      border-top: 1px solid #222;
+    }
+    nav button {
+      flex: 1;
+      padding: 12px;
+      background: #0d0d0d;
+      color: #fff;
+      border: none;
+      font-size: 0.9rem;
+    }
+    label {
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Settings</h2>
+  </header>
+
+  <main>
+    <section>
+      <h3>Notifications</h3>
+      <div class="row">
+        <label for="notifToggle">Enable notifications</label>
+        <input type="checkbox" id="notifToggle" />
+      </div>
+    </section>
+
+    <section>
+      <h3>Appearance</h3>
+      <div class="row">
+        <label for="darkToggle">Dark mode</label>
+        <input type="checkbox" id="darkToggle" checked disabled />
+      </div>
+    </section>
+
+    <section>
+      <h3>App</h3>
+      <button class="secondary" id="installBtn" style="display:none;">Install app</button>
+      <button class="secondary" onclick="clearData()">Clear local data</button>
+    </section>
+
+    <section>
+      <h3>About</h3>
+      <p style="font-size:0.9rem; opacity:0.7;">
+        TogetherSafe is built for women who go out together and refuse to be unprotected.
+      </p>
+    </section>
+  </main>
+
+  <nav>
+    <button onclick="goToHome()">Home</button>
+    <button onclick="goToSOS()">SOS</button>
+    <button onclick="goToProfile()">Profile</button>
+    <button onclick="goToSettings()">Settings</button>
+  </nav>
+
+  <script>
+    let deferredPrompt = null;
+
+    function loadPreferences() {
+      const prefs = JSON.parse(localStorage.getItem("preferences") || "{}");
+      document.getElementById("notifToggle").checked = !!prefs.notifications;
+    }
+
+    function savePreferences() {
+      const prefs = {
+        notifications: document.getElementById("notifToggle").checked
+      };
+      localStorage.setItem("preferences", JSON.stringify(prefs));
+    }
+
+    document.getElementById("notifToggle").addEventListener("change", savePreferences);
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installBtn = document.getElementById("installBtn");
+      installBtn.style.display = "block";
+      installBtn.addEventListener("click", async () => {
+        installBtn.style.display = "none";
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt = null;
+      });
+    });
+
+    function clearData() {
+      if (confirm("Clear all local data?")) {
+        localStorage.clear();
+        alert("Local data cleared.");
+      }
+    }
+
+    function goToHome() { window.location.href = "home.html"; }
+    function goToSOS() { window.location.href = "sos.html"; }
+    function goToProfile() { window.location.href = "profile.html"; }
+    function goToSettings() { window.location.href = "settings.html"; }
+
+    loadPreferences();
+  </script>
+</body>
+</html>
