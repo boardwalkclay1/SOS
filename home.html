@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TogetherSafe – Home</title>
+
   <style>
     body {
       margin: 0;
@@ -44,6 +45,7 @@
     .in-range { background: #163d1f; color: #7dff9a; }
     .weak { background: #3d3516; color: #ffe27d; }
     .out-range { background: #3d1616; color: #ff7d7d; }
+
     .big-sos {
       width: 100%;
       padding: 18px;
@@ -54,6 +56,7 @@
       font-size: 1.3rem;
       margin-top: 10px;
     }
+
     nav {
       display: flex;
       border-top: 1px solid #222;
@@ -68,6 +71,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <h2>Tonight’s Group</h2>
@@ -93,9 +97,13 @@
     <button onclick="goToSettings()">Settings</button>
   </nav>
 
+  <!-- NEW: Global app logic -->
+  <script src="app.js"></script>
+
   <script>
+    // Load group data from app.js
     function loadGroup() {
-      const groupData = JSON.parse(localStorage.getItem("groupData") || "null");
+      const groupData = window.App.getGroup();
       const membersList = document.getElementById("membersList");
       const groupNameLabel = document.getElementById("groupNameLabel");
 
@@ -108,15 +116,16 @@
 
       groupNameLabel.textContent = groupData.name || "Tonight’s Group";
 
-      (groupData.members || []).forEach(member => {
+      groupData.members.forEach(member => {
         const div = document.createElement("div");
         div.className = "member";
 
         const nameSpan = document.createElement("span");
-        nameSpan.textContent = member.name || member.phone || "Unknown";
+        nameSpan.textContent = member.name || member.contact || "Unknown";
 
         const badge = document.createElement("span");
         badge.classList.add("badge");
+
         if (member.rangeStatus === "in_range") {
           badge.classList.add("in-range");
           badge.textContent = "In range";
@@ -134,13 +143,18 @@
       });
     }
 
+    // Navigation
     function goToHome() { window.location.href = "home.html"; }
     function goToSOS() { window.location.href = "sos.html"; }
     function goToProfile() { window.location.href = "profile.html"; }
     function goToSettings() { window.location.href = "settings.html"; }
     function goToGroup() { window.location.href = "group.html"; }
 
+    // Initial load
     loadGroup();
+
+    // Auto-refresh every 3 seconds (for live location + group updates)
+    setInterval(loadGroup, 3000);
   </script>
 </body>
 </html>
