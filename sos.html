@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TogetherSafe – SOS</title>
+
   <style>
     body {
       margin: 0;
@@ -48,6 +49,7 @@
     .lvl4 { background: #5b1010; }
     .lvl5 { background: #102b5b; }
     .lvl6 { background: #153b4a; }
+
     nav {
       display: flex;
       border-top: 1px solid #222;
@@ -62,6 +64,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <h2>SOS</h2>
@@ -69,17 +72,17 @@
   </header>
 
   <main>
-    <button class="sos-card lvl1" onclick="sendSOS('bathroom_rescue')">
+    <button class="sos-card lvl1" onclick="triggerSOS('bathroom_rescue')">
       <div class="sos-title">Bathroom rescue</div>
       <div class="sos-sub">Quiet alert. Ask your group to come get you.</div>
     </button>
 
-    <button class="sos-card lvl2" onclick="sendSOS('check_on_me')">
+    <button class="sos-card lvl2" onclick="triggerSOS('check_on_me')">
       <div class="sos-title">Check on me</div>
       <div class="sos-sub">Set a timer. If you don’t respond, your group is alerted.</div>
     </button>
 
-    <button class="sos-card lvl3" onclick="sendSOS('too_drunk')">
+    <button class="sos-card lvl3" onclick="triggerSOS('too_drunk')">
       <div class="sos-title">Too drunk / need help</div>
       <div class="sos-sub">High-priority alert. You need support now.</div>
     </button>
@@ -89,12 +92,12 @@
       <div class="sos-sub">Critical alert. Loud, repeated, and escalated.</div>
     </button>
 
-    <button class="sos-card lvl5" onclick="sendSOS('call_me')">
+    <button class="sos-card lvl5" onclick="triggerSOS('call_me')">
       <div class="sos-title">Call me in 2 minutes</div>
       <div class="sos-sub">Ask someone to call you as an exit.</div>
     </button>
 
-    <button class="sos-card lvl6" onclick="sendSOS('going_home')">
+    <button class="sos-card lvl6" onclick="triggerSOS('going_home')">
       <div class="sos-title">I’m going home</div>
       <div class="sos-sub">Let your group know you’re heading home.</div>
     </button>
@@ -107,28 +110,22 @@
     <button onclick="goToSettings()">Settings</button>
   </nav>
 
+  <!-- NEW: global app logic -->
+  <script src="app.js"></script>
+
   <script>
-    function sendSOS(type) {
-      const sosEvents = JSON.parse(localStorage.getItem("sosEvents") || "[]");
-      const userProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
-
-      sosEvents.push({
-        id: Date.now(),
-        type,
-        sender: userProfile.phone || "unknown",
-        createdAt: new Date().toISOString()
-      });
-
-      localStorage.setItem("sosEvents", JSON.stringify(sosEvents));
-      alert("SOS sent: " + type.replace("_", " "));
+    async function triggerSOS(type) {
+      const result = await window.App.sendSOS(type);
+      alert(result.message);
     }
 
     function confirmRoofied() {
       if (confirm("Send critical SOS: Roofied / medical danger?")) {
-        sendSOS("roofied");
+        triggerSOS("roofied");
       }
     }
 
+    // Navigation
     function goToHome() { window.location.href = "home.html"; }
     function goToSOS() { window.location.href = "sos.html"; }
     function goToProfile() { window.location.href = "profile.html"; }
