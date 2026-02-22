@@ -55,12 +55,6 @@
     button:hover {
       background: #ff4d6d;
     }
-
-    .small {
-      font-size: 0.9rem;
-      opacity: 0.6;
-      margin-top: 10px;
-    }
   </style>
 </head>
 
@@ -73,11 +67,12 @@
 
   <button onclick="continueApp()">Continue</button>
 
-  <p class="small">We’ll request your location next to help keep your group safe.</p>
+  <!-- NEW: global logic -->
+  <script src="app.js"></script>
 
   <script>
     // Auto-login if profile exists
-    const savedProfile = localStorage.getItem("userProfile");
+    const savedProfile = window.App?.getProfile();
     if (savedProfile) {
       window.location.href = "home.html";
     }
@@ -89,31 +84,13 @@
         return;
       }
 
-      // Ask for location permission
-      let userLocation = null;
-      try {
-        userLocation = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            pos => resolve({
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude
-            }),
-            err => resolve(null),
-            { enableHighAccuracy: true }
-          );
-        });
-      } catch (e) {
-        userLocation = null;
-      }
+      // Create profile through App.js
+      const result = await window.App.createProfile(contact);
 
-      // Save profile
-      localStorage.setItem("userProfile", JSON.stringify({
-        contact: contact,
-        name: "",
-        avatar: "",
-        trustedContacts: [],
-        location: userLocation
-      }));
+      if (!result.success) {
+        alert(result.message);
+        return;
+      }
 
       window.location.href = "profile.html";
     }
