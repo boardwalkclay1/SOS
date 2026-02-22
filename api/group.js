@@ -1,19 +1,23 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../db");
+const axios = require("axios");
+
+// Your PocketBase URL
+const PB_URL = process.env.PB_URL; // set this in Railway
 
 // CREATE GROUP
 router.post("/", async (req, res) => {
   const { id, name } = req.body;
 
   try {
-    await pool.query(
-      "INSERT INTO groups (id, name) VALUES ($1, $2)",
-      [id, name]
-    );
+    const result = await axios.post(`${PB_URL}/api/collections/groups/records`, {
+      id,
+      name
+    });
 
-    res.json({ success: true });
+    res.json({ success: true, group: result.data });
   } catch (err) {
+    console.error("PB ERROR:", err.response?.data || err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -24,13 +28,16 @@ router.post("/:id/join", async (req, res) => {
   const { member } = req.body;
 
   try {
-    await pool.query(
-      "INSERT INTO group_members (id, group_id, name, avatar) VALUES ($1, $2, $3, $4)",
-      [member.id, groupId, member.name, member.avatar || null]
-    );
+    const result = await axios.post(`${PB_URL}/api/collections/group_members/records`, {
+      id: member.id,
+      group_id: groupId,
+      name: member.name,
+      avatar: member.avatar || null
+    });
 
-    res.json({ success: true });
+    res.json({ success: true, member: result.data });
   } catch (err) {
+    console.error("PB ERROR:", err.response?.data || err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -40,17 +47,18 @@ router.get("/:id/state", async (req, res) => {
   const groupId = req.params.id;
 
   try {
-    const group = await pool.query("SELECT * FROM groups WHERE id = $1", [groupId]);
-    const members = await pool.query("SELECT * FROM group_members WHERE group_id = $1", [groupId]);
-    const locations = await pool.query("SELECT * FROM locations WHERE group_id = $1", [groupId]);
+    const group = await axios.get(`${PB_URL}/api/collections/groups/records/${groupId}`);
+    const members = await axios.get(`${PB_URL}/api/collections/group_members/records?filter=group_id="${groupId}"`);
+    const locations = await axios.get(`${PB_URL}/api/collections/locations/records?filter=group_id="${groupId}"`);
 
     res.json({
       success: true,
-      group: group.rows[0] || null,
-      members: members.rows,
-      locations: locations.rows
+      group: group.data,
+      members: members.data.items,
+      locations: locations.data.items
     });
   } catch (err) {
+    console.error("PB ERROR:", err.response?.data || err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
