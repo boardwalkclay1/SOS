@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TogetherSafe – Live Location</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    body {
+      margin: 0;
+      background: #0d0d0d;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid #222;
+    }
+    main {
+      flex: 1;
+      padding: 8px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #mapContainer {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      height: 220px;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    #mapContainer.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 48px;
+      z-index: 999;
+      border-radius: 0;
+    }
+    .toggle-map {
+      margin-top: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: none;
+      background: #222;
+      color: #fff;
+      font-size: 0.9rem;
+      align-self: flex-end;
+      cursor: pointer;
+    }
+    .member-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      padding: 6px 0;
+      border-bottom: 1px solid #222;
+    }
+    .badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+    }
+    .in-range { background: #163d1f; color: #7dff9a; } /* <=10 ft green */
+    .weak { background: #102b5b; color: #7db5ff; }     /* <=30 ft blue */
+    .out-range { background: #3d1616; color: #ff7d7d; }/* >30 ft red */
+
+    nav {
+      display: flex;
+      border-top: 1px solid #222;
+    }
+    nav button {
+      flex: 1;
+      padding: 12px;
+      background: #0d0d0d;
+      color: #fff;
+      border: none;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Live Location</h2>
+    <small>See your group on the map</small>
+  </header>
+
+  <main>
+    <div id="mapContainer">
+      <div id="map"></div>
+    </div>
+    <button class="toggle-map" onclick="toggleMapSize()">Toggle full screen</button>
+
+    <section id="membersDistances"></section>
+  </main>
+
+  <nav>
+    <button onclick="goToHome()">Home</button>
+    <button onclick="goToSOS()">SOS</button>
+    <button onclick="goToProfile()">Profile</button>
+    <button onclick="goToSettings()">Settings</button>
+  </nav>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+  <script src="app.js"></script>
+
+  <script>
+    let map;
+    let markers = {};
+    let isFull = false;
+
+    function initMap(center) {
+      if (map) return;
+      map = L.map("map").setView(center || [0, 0], center ? 17 : 2);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+      }).addTo(map);
+    }
+
+    function updateMarkers(group) {
+      if (!map || !group) return;
+
+      const members = group.members || [];
+      const bounds = [];
+
+      members.forEach((m) => {
+        if (!m.location) return;
+        const key = m.id || m.contact;
+        const latlng = [m.location.lat, m.location.lng];
+
+        let color = "red";
+        if (m.rangeStatus === "in_range") color = "green";
+        else if (m.rangeStatus === "weak") color = "blue";
+
+        const icon = L.divIcon({
+          className: "",
+          html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;"></div>`,
+        });
+
+        if (markers[key]) {
+          markers[key].setLatLng(latlng);
+          markers[key].setIcon(icon);
+        } else {
+          markers[key] = L.marker(latlng, { icon }).addTo(map);
+        }
+
+        bounds.push(latlng);
+      });
+
+      if (bounds.length) {
+        map.fitBounds(bounds, { padding: [30, 30] });
+      }
+    }
+
+    function renderDistances(group) {
+      const container = document.getElementById("membersDistances");
+      container.innerHTML = "";
+
+      if (!group) {
+        container.innerHTML = "<p style='opacity:0.7;font-size:0.9rem;'>No active group.</p>";
+        return;
+      }
+
+      (group.members || []).forEach((m) => {
+        const row = document.createElement("div");
+        row.className = "member-row";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = m.name || m.contact || "Unknown";
+
+        const right = document.createElement("span");
+
+        const badge = document.createElement("span");
+        badge.classList.add("badge");
+        badge.classList.add(m.rangeStatus || "out-range");
+
+        let label = "Out of range";
+        if (m.distanceFeet != null) {
+          const feet = Math.round(m.distanceFeet);
+          label = `${feet} ft`;
+        }
+
+        badge.textContent = label;
+        right.appendChild(badge);
+
+        row.appendChild(nameSpan);
+        row.appendChild(right);
+        container.appendChild(row);
+      });
+    }
+
+    async function refresh() {
+      const group = await window.App.fetchGroupState();
+      const profile = window.App.getProfile();
+
+      if (!map) {
+        const center =
+          profile && profile.location
+            ? [profile.location.lat, profile.location.lng]
+            : [0, 0];
+        initMap(center);
+      }
+
+      updateMarkers(group);
+      renderDistances(group);
+    }
+
+    function toggleMapSize() {
+      const container = document.getElementById("mapContainer");
+      isFull = !isFull;
+      if (isFull) {
+        container.classList.add("fullscreen");
+      } else {
+        container.classList.remove("fullscreen");
+      }
+      if (map) {
+        setTimeout(() => map.invalidateSize(), 200);
+      }
+    }
+
+    function goToHome() { window.location.href = "home.html"; }
+    function goToSOS() { window.location.href = "sos.html"; }
+    function goToProfile() { window.location.href = "profile.html"; }
+    function goToSettings() { window.location.href = "settings.html"; }
+
+    refresh();
+    setInterval(refresh, 3000);
+  </script>
+</body>
+</html>
