@@ -1,18 +1,28 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../db");
+const axios = require("axios");
 
+// Your PocketBase URL (set this in Railway env vars)
+const PB_URL = process.env.PB_URL;
+
+// CREATE SOS EVENT
 router.post("/", async (req, res) => {
   const { groupId, userId, message } = req.body;
 
-  try {
-    await pool.query(
-      "INSERT INTO sos_events (group_id, user_id, message) VALUES ($1, $2, $3)",
-      [groupId, userId, message]
-    );
+  if (!groupId || !userId) {
+    return res.status(400).json({ success: false, message: "Missing groupId or userId" });
+  }
 
-    res.json({ success: true });
+  try {
+    const result = await axios.post(`${PB_URL}/api/collections/sos_events/records`, {
+      group_id: groupId,
+      user_id: userId,
+      message: message || "SOS triggered"
+    });
+
+    res.json({ success: true, event: result.data });
   } catch (err) {
+    console.error("POCKETBASE SOS ERROR:", err.response?.data || err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
