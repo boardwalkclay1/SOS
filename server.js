@@ -6,12 +6,19 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// -----------------------------
+// CORE MIDDLEWARE
+// -----------------------------
 app.use(cors());
 app.use(express.json());
+
+// -----------------------------
+// STATIC FILES (MUST BE FIRST)
+// -----------------------------
 app.use(express.static(path.join(__dirname, "public")));
 
 // -----------------------------
-// API ROUTES (must be BEFORE fallback)
+// API ROUTES (MUST BE BEFORE FALLBACK)
 // -----------------------------
 app.use("/api/group", require("./api/group"));
 app.use("/api/location", require("./api/location"));
@@ -20,7 +27,7 @@ app.use("/api/profile", require("./api/profile"));
 app.use("/api/preferences", require("./api/preferences"));
 
 // -----------------------------
-// FALLBACK ROUTE (must be last)
+// FALLBACK ROUTE (MUST BE LAST)
 // -----------------------------
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -30,5 +37,5 @@ app.get("*", (req, res) => {
 // START SERVER
 // -----------------------------
 app.listen(PORT, () => {
-  console.log(`Save a Sista server running on port ${PORT}`);
+  console.log(`TogetherSafe backend running on port ${PORT}`);
 });
