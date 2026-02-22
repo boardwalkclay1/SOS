@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // -----------------------------
-// API ROUTES (your real backend)
+// API ROUTES (backend logic)
 // -----------------------------
 app.use("/api/group", require("./api/group"));
 app.use("/api/location", require("./api/location"));
