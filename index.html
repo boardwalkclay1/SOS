@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TogetherSafe</title>
 
-  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json" />
 
-  <!-- App Style -->
   <style>
     body {
       margin: 0;
@@ -57,6 +55,12 @@
     button:hover {
       background: #ff4d6d;
     }
+
+    .small {
+      font-size: 0.9rem;
+      opacity: 0.6;
+      margin-top: 10px;
+    }
   </style>
 </head>
 
@@ -65,30 +69,50 @@
   <h1>TogetherSafe</h1>
   <p>Your group. Your night. Your safety.</p>
 
-  <input id="phoneInput" type="tel" placeholder="Enter your phone number" />
+  <input id="contactInput" type="text" placeholder="Phone number or email" />
 
   <button onclick="continueApp()">Continue</button>
 
+  <p class="small">We’ll request your location next to help keep your group safe.</p>
+
   <script>
-    // Load profile if exists
+    // Auto-login if profile exists
     const savedProfile = localStorage.getItem("userProfile");
     if (savedProfile) {
       window.location.href = "home.html";
     }
 
-    function continueApp() {
-      const phone = document.getElementById("phoneInput").value.trim();
-      if (!phone) {
-        alert("Please enter your phone number");
+    async function continueApp() {
+      const contact = document.getElementById("contactInput").value.trim();
+      if (!contact) {
+        alert("Please enter your phone number or email");
         return;
       }
 
-      // Save minimal profile
+      // Ask for location permission
+      let userLocation = null;
+      try {
+        userLocation = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            pos => resolve({
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            }),
+            err => resolve(null),
+            { enableHighAccuracy: true }
+          );
+        });
+      } catch (e) {
+        userLocation = null;
+      }
+
+      // Save profile
       localStorage.setItem("userProfile", JSON.stringify({
-        phone: phone,
+        contact: contact,
         name: "",
         avatar: "",
-        trustedContacts: []
+        trustedContacts: [],
+        location: userLocation
       }));
 
       window.location.href = "profile.html";
