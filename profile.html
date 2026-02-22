@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TogetherSafe – Profile</title>
+
   <style>
     body {
       margin: 0;
@@ -51,6 +52,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <h2>Profile</h2>
@@ -60,13 +62,13 @@
     <section>
       <h3>Your info</h3>
       <input id="nameInput" type="text" placeholder="Your name" />
-      <input id="phoneInput" type="tel" placeholder="Your phone number" />
+      <input id="contactInput" type="text" placeholder="Phone or email" />
       <input id="avatarInput" type="text" placeholder="Avatar URL (optional)" />
     </section>
 
     <section>
-      <h3>Trusted contacts (comma-separated phones)</h3>
-      <textarea id="trustedInput" rows="3" placeholder="+1..., +1..."></textarea>
+      <h3>Trusted contacts (comma-separated)</h3>
+      <textarea id="trustedInput" rows="3" placeholder="+1..., email..., +1..."></textarea>
     </section>
 
     <button onclick="saveProfile()">Save profile</button>
@@ -79,24 +81,29 @@
     <button onclick="goToSettings()">Settings</button>
   </nav>
 
+  <!-- NEW: global logic -->
+  <script src="app.js"></script>
+
   <script>
     function loadProfile() {
-      const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+      const profile = window.App.getProfile() || {};
+
       document.getElementById("nameInput").value = profile.name || "";
-      document.getElementById("phoneInput").value = profile.phone || "";
+      document.getElementById("contactInput").value = profile.contact || "";
       document.getElementById("avatarInput").value = profile.avatar || "";
+
       document.getElementById("trustedInput").value =
         (profile.trustedContacts || []).join(", ");
     }
 
-    function saveProfile() {
+    async function saveProfile() {
       const name = document.getElementById("nameInput").value.trim();
-      const phone = document.getElementById("phoneInput").value.trim();
+      const contact = document.getElementById("contactInput").value.trim();
       const avatar = document.getElementById("avatarInput").value.trim();
       const trustedRaw = document.getElementById("trustedInput").value.trim();
 
-      if (!phone) {
-        alert("Phone number is required.");
+      if (!contact) {
+        alert("Phone or email is required.");
         return;
       }
 
@@ -104,17 +111,17 @@
         ? trustedRaw.split(",").map(t => t.trim()).filter(Boolean)
         : [];
 
-      const profile = {
+      const result = await window.App.saveProfile({
         name,
-        phone,
+        contact,
         avatar,
         trustedContacts
-      };
+      });
 
-      localStorage.setItem("userProfile", JSON.stringify(profile));
-      alert("Profile saved.");
+      alert(result.message);
     }
 
+    // Navigation
     function goToHome() { window.location.href = "home.html"; }
     function goToSOS() { window.location.href = "sos.html"; }
     function goToProfile() { window.location.href = "profile.html"; }
