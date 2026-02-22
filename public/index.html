@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TogetherSafe</title>
 
-  <link rel="manifest" href="manifest.json" />
+  <link rel="manifest" href="/manifest.json" />
 
   <style>
     body {
@@ -67,8 +67,8 @@
 
   <button onclick="continueApp()">Continue</button>
 
-  <!-- NEW: global logic -->
-  <script src="app.js"></script>
+  <!-- FIXED: Correct script path -->
+  <script src="/app.js"></script>
 
   <script>
     // Auto-login if profile exists
@@ -84,7 +84,6 @@
         return;
       }
 
-      // Create profile through App.js
       const result = await window.App.createProfile(contact);
 
       if (!result.success) {
@@ -97,7 +96,7 @@
 
     // Register service worker
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
+      navigator.serviceWorker.register("/service-worker.js");
     }
   </script>
 
