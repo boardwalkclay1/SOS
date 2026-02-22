@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TogetherSafe – Settings</title>
+
   <style>
     body {
       margin: 0;
@@ -61,6 +62,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <h2>Settings</h2>
@@ -104,31 +106,40 @@
     <button onclick="goToSettings()">Settings</button>
   </nav>
 
+  <!-- NEW: global logic -->
+  <script src="app.js"></script>
+
   <script>
     let deferredPrompt = null;
 
     function loadPreferences() {
-      const prefs = JSON.parse(localStorage.getItem("preferences") || "{}");
+      const prefs = window.App.getPreferences();
       document.getElementById("notifToggle").checked = !!prefs.notifications;
     }
 
-    function savePreferences() {
+    async function savePreferences() {
       const prefs = {
         notifications: document.getElementById("notifToggle").checked
       };
-      localStorage.setItem("preferences", JSON.stringify(prefs));
+
+      const result = await window.App.savePreferences(prefs);
+      console.log(result.message);
     }
 
     document.getElementById("notifToggle").addEventListener("change", savePreferences);
 
+    // PWA install prompt
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       deferredPrompt = e;
+
       const installBtn = document.getElementById("installBtn");
       installBtn.style.display = "block";
+
       installBtn.addEventListener("click", async () => {
         installBtn.style.display = "none";
         if (!deferredPrompt) return;
+
         deferredPrompt.prompt();
         deferredPrompt = null;
       });
@@ -136,11 +147,12 @@
 
     function clearData() {
       if (confirm("Clear all local data?")) {
-        localStorage.clear();
+        window.App.clearAllData();
         alert("Local data cleared.");
       }
     }
 
+    // Navigation
     function goToHome() { window.location.href = "home.html"; }
     function goToSOS() { window.location.href = "sos.html"; }
     function goToProfile() { window.location.href = "profile.html"; }
