@@ -107,3 +107,8 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`TogetherSafe server running on port ${PORT}`);
 });
+app.use("/api/group", require("./api/group"));
+app.use("/api/location", require("./api/location"));
+app.use("/api/sos", require("./api/sos"));
+app.use("/api/profile", require("./api/profile"));
+app.use("/api/preferences", require("./api/preferences"));
