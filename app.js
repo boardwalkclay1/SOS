@@ -1,11 +1,14 @@
 // public/app.js
 (function () {
-  const API_BASE = ""; // same origin; change if you host API separately
+  // 🔗 Your PocketBase URL
+  const PB_URL = "https://pocketbase-production-289f.up.railway.app";
+  const pb = new PocketBase(PB_URL);
 
   const LS_KEYS = {
     PROFILE: "userProfile",
     GROUP: "groupData",
     PREFS: "preferences",
+    SOS_EVENTS: "sosEvents",
   };
 
   function load(key, fallback = null) {
@@ -18,27 +21,107 @@
   }
 
   function save(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
-
-  async function api(path, options = {}) {
-    try {
-      const res = await fetch(API_BASE + path, {
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        ...options,
-      });
-      if (!res.ok) throw new Error("API error");
-      return await res.json();
-    } catch (e) {
-      console.warn("API fallback:", e.message);
-      return { success: false, offline: true };
+    if (value === null || value === undefined) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(value));
     }
   }
 
   function getProfile() {
     return load(LS_KEYS.PROFILE);
   }
+
+  function getGroup() {
+    return load(LS_KEYS.GROUP);
+  }
+
+  function getPreferences() {
+    return load(LS_KEYS.PREFS, {});
+  }
+
+  // ---------- PocketBase helpers ----------
+
+  async function upsertProfile(profile) {
+    try {
+      if (profile.pbId) {
+        const updated = await pb.collection("profiles").update(profile.pbId, profile);
+        return updated;
+      } else {
+        const created = await pb.collection("profiles").create(profile);
+        profile.pbId = created.id;
+        save(LS_KEYS.PROFILE, profile);
+        return created;
+      }
+    } catch (e) {
+      console.warn("PB profile error:", e.message);
+      return null;
+    }
+  }
+
+  async function upsertGroup(group) {
+    try {
+      if (group.pbId) {
+        const updated = await pb.collection("groups").update(group.pbId, group);
+        return updated;
+      } else {
+        const created = await pb.collection("groups").create(group);
+        group.pbId = created.id;
+        save(LS_KEYS.GROUP, group);
+        return created;
+      }
+    } catch (e) {
+      console.warn("PB group error:", e.message);
+      return null;
+    }
+  }
+
+  async function savePreferencesPB(profile, prefs) {
+    if (!profile || !profile.pbId) return;
+    try {
+      const list = await pb.collection("preferences").getList(1, 1, {
+        filter: `profileId = "${profile.pbId}"`,
+      });
+      if (list.items.length) {
+        await pb.collection("preferences").update(list.items[0].id, {
+          profileId: profile.pbId,
+          data: prefs,
+        });
+      } else {
+        await pb.collection("preferences").create({
+          profileId: profile.pbId,
+          data: prefs,
+        });
+      }
+    } catch (e) {
+      console.warn("PB prefs error:", e.message);
+    }
+  }
+
+  async function logSOSEventPB(event) {
+    try {
+      await pb.collection("sos_events").create(event);
+    } catch (e) {
+      console.warn("PB SOS error:", e.message);
+    }
+  }
+
+  async function updateMemberLocationInGroupPB(group, profile, loc) {
+    if (!group || !group.pbId) return;
+    try {
+      const fresh = await pb.collection("groups").getOne(group.pbId);
+      const members = fresh.members || [];
+      const idx = members.findIndex((m) => m.id === profile.id);
+      if (idx >= 0) {
+        members[idx].location = loc;
+      }
+      await pb.collection("groups").update(group.pbId, { members });
+    } catch (e) {
+      console.warn("PB group location error:", e.message);
+    }
+  }
+
+  // ---------- Public API functions ----------
 
   async function createProfile(contact) {
     const profile = {
@@ -48,36 +131,25 @@
       avatar: "",
       trustedContacts: [],
       location: null,
+      pbId: null,
     };
 
     save(LS_KEYS.PROFILE, profile);
-
-    // Try backend
-    await api("/api/profile", {
-      method: "POST",
-      body: JSON.stringify(profile),
-    });
-
+    await upsertProfile(profile);
     startLocationTracking();
     return { success: true, message: "Profile created" };
   }
 
   async function saveProfile(partial) {
     const existing = getProfile() || {};
-    const updated = { ...existing, ...partial, id: existing.id || partial.contact };
-
+    const updated = {
+      ...existing,
+      ...partial,
+      id: existing.id || partial.contact,
+    };
     save(LS_KEYS.PROFILE, updated);
-
-    await api("/api/profile", {
-      method: "POST",
-      body: JSON.stringify(updated),
-    });
-
+    await upsertProfile(updated);
     return { success: true, message: "Profile saved" };
-  }
-
-  function getGroup() {
-    return load(LS_KEYS.GROUP);
   }
 
   async function saveGroup(name) {
@@ -90,15 +162,11 @@
       name,
       members: existing.members || [],
       createdAt: existing.createdAt || new Date().toISOString(),
+      pbId: existing.pbId || null,
     };
 
     save(LS_KEYS.GROUP, group);
-
-    await api("/api/group", {
-      method: "POST",
-      body: JSON.stringify(group),
-    });
-
+    await upsertGroup(group);
     return { success: true, message: "Group saved" };
   }
 
@@ -116,30 +184,25 @@
         id: profile.id,
         contact: profile.contact,
         name: profile.name || "Me",
+        location: profile.location || null,
       });
     }
 
     group.members = members;
     save(LS_KEYS.GROUP, group);
-
-    await api(`/api/group/${group.id}/join`, {
-      method: "POST",
-      body: JSON.stringify({ member: members[members.length - 1] }),
-    });
+    await upsertGroup(group);
 
     return { success: true, message: "Added to group" };
   }
 
   async function leaveGroup() {
     const group = getGroup();
-    if (!group) return { success: true, message: "No group to leave" };
+    if (!group) {
+      save(LS_KEYS.GROUP, null);
+      return { success: true, message: "No group to leave" };
+    }
 
     save(LS_KEYS.GROUP, null);
-    localStorage.removeItem(LS_KEYS.GROUP);
-
-    // Optional: notify backend
-    await api(`/api/group/${group.id}/leave`, { method: "POST" });
-
     return { success: true, message: "Left group" };
   }
 
@@ -148,7 +211,6 @@
     if (!group || !group.id) {
       return { success: false, link: "", message: "No group" };
     }
-    // For now, just a placeholder link; later can be deep link
     const link = `${window.location.origin}/?groupId=${encodeURIComponent(group.id)}`;
     return { success: true, link };
   }
@@ -161,38 +223,28 @@
     if (!group || !group.id) return { success: false, message: "No active group" };
 
     const event = {
-      id: Date.now(),
       type,
       senderId: profile.id,
       groupId: group.id,
       createdAt: new Date().toISOString(),
       location: profile.location || null,
+      profilePbId: profile.pbId || null,
+      groupPbId: group.pbId || null,
     };
 
-    // Local log
-    const sosEvents = load("sosEvents", []);
+    const sosEvents = load(LS_KEYS.SOS_EVENTS, []);
     sosEvents.push(event);
-    save("sosEvents", sosEvents);
+    save(LS_KEYS.SOS_EVENTS, sosEvents);
 
-    // Backend broadcast
-    await api("/api/sos", {
-      method: "POST",
-      body: JSON.stringify(event),
-    });
+    await logSOSEventPB(event);
 
     return { success: true, message: `SOS sent: ${type.replace(/_/g, " ")}` };
   }
 
-  function getPreferences() {
-    return load(LS_KEYS.PREFS, {});
-  }
-
   async function savePreferences(prefs) {
+    const profile = getProfile();
     save(LS_KEYS.PREFS, prefs);
-    await api("/api/preferences", {
-      method: "POST",
-      body: JSON.stringify(prefs),
-    });
+    await savePreferencesPB(profile, prefs);
     return { success: true, message: "Preferences saved" };
   }
 
@@ -200,14 +252,15 @@
     localStorage.clear();
   }
 
-  // Distance helpers
+  // ---------- Distance + range helpers ----------
+
   function toRad(deg) {
     return (deg * Math.PI) / 180;
   }
 
   function distanceFeet(a, b) {
     if (!a || !b) return null;
-    const R = 6371000; // meters
+    const R = 6371000;
     const dLat = toRad(b.lat - a.lat);
     const dLng = toRad(b.lng - a.lng);
     const lat1 = toRad(a.lat);
@@ -236,12 +289,13 @@
 
   function rangeStatusFeet(feet) {
     if (feet == null) return "out_range";
-    if (feet <= 10) return "in_range"; // green
-    if (feet <= 30) return "weak"; // blue
-    return "out_range"; // red
+    if (feet <= 10) return "in_range";
+    if (feet <= 30) return "weak";
+    return "out_range";
   }
 
-  // Location tracking
+  // ---------- Location tracking ----------
+
   function startLocationTracking() {
     if (!("geolocation" in navigator)) return;
 
@@ -258,17 +312,11 @@
 
         const updated = { ...profile, location: loc };
         save(LS_KEYS.PROFILE, updated);
+        await upsertProfile(updated);
 
         const group = getGroup();
         if (group && group.id) {
-          await api("/api/location", {
-            method: "POST",
-            body: JSON.stringify({
-              groupId: group.id,
-              userId: profile.id,
-              location: loc,
-            }),
-          });
+          await updateMemberLocationInGroupPB(group, updated, loc);
         }
       },
       (err) => {
@@ -281,14 +329,12 @@
   async function fetchGroupState() {
     const profile = getProfile();
     const group = getGroup();
-    if (!profile || !group || !group.id) return null;
+    if (!profile || !group || !group.pbId) return null;
 
-    const res = await api(`/api/group/${group.id}/state`);
-    if (res.offline || !res.success) {
-      // Local-only fallback
-      const localGroup = getGroup();
+    try {
+      const fresh = await pb.collection("groups").getOne(group.pbId);
       const meLoc = (getProfile() || {}).location || null;
-      const members = (localGroup.members || []).map((m) => {
+      const members = (fresh.members || []).map((m) => {
         const loc = m.location || null;
         const feet = loc && meLoc ? distanceFeet(meLoc, loc) : null;
         return {
@@ -297,26 +343,18 @@
           rangeStatus: rangeStatusFeet(feet),
         };
       });
-      return { ...localGroup, members };
+
+      const merged = { ...group, ...fresh, members };
+      save(LS_KEYS.GROUP, merged);
+      return merged;
+    } catch (e) {
+      console.warn("PB group state error:", e.message);
+      return null;
     }
-
-    const meLoc = (getProfile() || {}).location || null;
-    const members = (res.group.members || []).map((m) => {
-      const loc = m.location || null;
-      const feet = loc && meLoc ? distanceFeet(meLoc, loc) : null;
-      return {
-        ...m,
-        distanceFeet: feet,
-        rangeStatus: rangeStatusFeet(feet),
-      };
-    });
-
-    const merged = { ...group, ...res.group, members };
-    save(LS_KEYS.GROUP, merged);
-    return merged;
   }
 
-  // Expose API
+  // ---------- Expose API ----------
+
   window.App = {
     getProfile,
     createProfile,
@@ -334,7 +372,6 @@
     fetchGroupState,
   };
 
-  // Auto-start tracking if profile exists
   if (getProfile()) {
     startLocationTracking();
   }
