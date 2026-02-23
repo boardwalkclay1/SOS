@@ -23,13 +23,24 @@
     }
 
     h1 {
-      font-size: 2.4rem;
+      font-size: 2.6rem;
       margin-bottom: 10px;
+      font-weight: bold;
     }
 
-    p {
-      opacity: 0.7;
-      margin-bottom: 30px;
+    .tagline {
+      opacity: 0.8;
+      margin-bottom: 25px;
+      max-width: 80%;
+      line-height: 1.4rem;
+    }
+
+    .explain {
+      opacity: 0.6;
+      font-size: 0.95rem;
+      max-width: 85%;
+      margin-bottom: 35px;
+      line-height: 1.4rem;
     }
 
     input {
@@ -61,13 +72,19 @@
 <body>
 
   <h1>TogetherSafe</h1>
-  <p>Your group. Your night. Your safety.</p>
+
+  <p class="tagline">Your group. Your night. Your safety.</p>
+
+  <p class="explain">
+    TogetherSafe was created to keep friends connected and protected during nights out,
+    road trips, festivals, and everyday life. Create a quick profile, form a group,
+    and everyone can see each other’s live location, distance, and SOS alerts in real time.
+  </p>
 
   <input id="contactInput" type="text" placeholder="Phone number or email" />
 
   <button onclick="continueApp()">Continue</button>
 
-  <!-- FIXED: Correct script path -->
   <script src="/app.js"></script>
 
   <script>
@@ -84,6 +101,7 @@
         return;
       }
 
+      // Create or load profile
       const result = await window.App.createProfile(contact);
 
       if (!result.success) {
