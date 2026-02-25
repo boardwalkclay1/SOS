@@ -6,7 +6,7 @@ const PocketBase = require("pocketbase/cjs");
 
 // --------------------------------------
 // INITIALIZE EXPRESS + POCKETBASE CLIENT
-----------------------------------------
+// --------------------------------------
 const app = express();
 const PORT = process.env.PORT || 3000;
 
