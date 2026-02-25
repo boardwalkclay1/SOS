@@ -1,23 +1,52 @@
 const express = require("express");
-const router = express.Router();
-const axios = require("axios");
 
-const PB_URL = process.env.PB_URL;
+module.exports = (pb) => {
+  const router = express.Router();
 
-router.post("/", async (req, res) => {
-  const { userId, profile } = req.body;
+  // --------------------------------------------------
+  // CREATE OR UPDATE PROFILE
+  // --------------------------------------------------
+  router.post("/", async (req, res) => {
+    const { userId, profile } = req.body;
 
-  try {
-    const result = await axios.post(`${PB_URL}/api/collections/profiles/records`, {
-      user_id: userId,
-      ...profile
-    });
+    if (!userId || !profile) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing userId or profile payload",
+      });
+    }
 
-    res.json({ success: true, record: result.data });
-  } catch (err) {
-    console.error("POCKETBASE PROFILE ERROR:", err.response?.data || err.message);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+    try {
+      // Check if profile already exists for this user
+      const list = await pb.collection("profiles").getList(1, 1, {
+        filter: `user_id="${userId}"`,
+      });
 
-module.exports = router;
+      let record;
+
+      if (list.items.length) {
+        // Update existing profile
+        record = await pb.collection("profiles").update(list.items[0].id, {
+          user_id: userId,
+          ...profile,
+        });
+      } else {
+        // Create new profile
+        record = await pb.collection("profiles").create({
+          user_id: userId,
+          ...profile,
+        });
+      }
+
+      res.json({ success: true, record });
+    } catch (err) {
+      console.error("POCKETBASE PROFILE ERROR:", err);
+      res.status(500).json({
+        success: false,
+        error: err.message,
+      });
+    }
+  });
+
+  return router;
+};
