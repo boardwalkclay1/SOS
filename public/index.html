@@ -23,24 +23,25 @@
     }
 
     h1 {
-      font-size: 2.6rem;
+      font-size: 2.8rem;
       margin-bottom: 10px;
       font-weight: bold;
     }
 
     .tagline {
-      opacity: 0.8;
-      margin-bottom: 25px;
+      opacity: 0.85;
+      margin-bottom: 20px;
       max-width: 80%;
       line-height: 1.4rem;
+      font-size: 1.2rem;
     }
 
     .explain {
-      opacity: 0.6;
-      font-size: 0.95rem;
+      opacity: 0.7;
+      font-size: 1rem;
       max-width: 85%;
       margin-bottom: 35px;
-      line-height: 1.4rem;
+      line-height: 1.5rem;
     }
 
     input {
@@ -61,10 +62,18 @@
       color: white;
       font-size: 1.2rem;
       cursor: pointer;
+      margin-bottom: 20px;
     }
 
     button:hover {
       background: #ff4d6d;
+    }
+
+    .subtext {
+      opacity: 0.6;
+      font-size: 0.9rem;
+      margin-top: -10px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
@@ -76,14 +85,26 @@
   <p class="tagline">Your group. Your night. Your safety.</p>
 
   <p class="explain">
-    TogetherSafe was created to keep friends connected and protected during nights out,
+    TogetherSafe keeps your circle connected and protected during nights out,
     road trips, festivals, and everyday life. Create a quick profile, form a group,
     and everyone can see each other’s live location, distance, and SOS alerts in real time.
+    <br><br>
+    To unlock full access, TogetherSafe runs on a simple $5/month subscription that
+    keeps the servers live, the maps updating, and your group protected.
   </p>
 
   <input id="contactInput" type="text" placeholder="Phone number or email" />
 
-  <button onclick="continueApp()">Continue</button>
+  <button onclick="continueApp()">Create My Profile</button>
+
+  <p class="subtext">After creating your profile, you’ll be prompted to activate your $5/month subscription.</p>
+
+  <!-- PayPal Subscription Button -->
+  <form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="width:80%;">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="hosted_button_id" value="Ab_cANXmAJ4CP2RoWgOe2rPr7q_a6AfZJnXifP4sNeKRULWUvxyCOkKre5U0WcjOkOO3AIT1gYiNpOdh">
+    <button type="submit">Activate $5/month Subscription</button>
+  </form>
 
   <script src="/app.js"></script>
 
@@ -101,7 +122,6 @@
         return;
       }
 
-      // Create or load profile
       const result = await window.App.createProfile(contact);
 
       if (!result.success) {
@@ -109,6 +129,7 @@
         return;
       }
 
+      // After profile creation, user goes to subscription or profile setup
       window.location.href = "profile.html";
     }
 
