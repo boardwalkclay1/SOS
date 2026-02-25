@@ -1,23 +1,46 @@
 const express = require("express");
-const router = express.Router();
-const axios = require("axios");
 
-const PB_URL = process.env.PB_URL; // set this in Railway
+module.exports = (pb) => {
+  const router = express.Router();
 
-router.post("/", async (req, res) => {
-  const { userId, preferences } = req.body;
+  // --------------------------------------------------
+  // CREATE OR UPDATE PROFILE
+  // --------------------------------------------------
+  router.post("/", async (req, res) => {
+    const profile = req.body;
 
-  try {
-    const result = await axios.post(`${PB_URL}/api/collections/preferences/records`, {
-      user_id: userId,
-      data: preferences
-    });
+    if (!profile || !profile.id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing profile id",
+      });
+    }
 
-    res.json({ success: true, record: result.data });
-  } catch (err) {
-    console.error("PB PREF ERROR:", err.response?.data || err.message);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+    try {
+      // Check if profile already exists
+      const list = await pb.collection("profiles").getList(1, 1, {
+        filter: `id="${profile.id}"`,
+      });
 
-module.exports = router;
+      let record;
+
+      if (list.items.length) {
+        // Update existing profile
+        record = await pb.collection("profiles").update(list.items[0].id, profile);
+      } else {
+        // Create new profile
+        record = await pb.collection("profiles").create(profile);
+      }
+
+      res.json({ success: true, profile: record });
+    } catch (err) {
+      console.error("PB PROFILE ERROR:", err);
+      res.status(500).json({
+        success: false,
+        error: err.message,
+      });
+    }
+  });
+
+  return router;
+};
