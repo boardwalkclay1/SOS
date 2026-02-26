@@ -97,11 +97,13 @@
     <button onclick="goToSettings()">Settings</button>
   </nav>
 
-  <!-- NEW: Global app logic -->
+  <!-- Load PocketBase browser SDK FIRST -->
+  <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+
+  <!-- Then load your global app logic -->
   <script src="app.js"></script>
 
   <script>
-    // Load group data from app.js
     function loadGroup() {
       const groupData = window.App.getGroup();
       const membersList = document.getElementById("membersList");
@@ -116,7 +118,7 @@
 
       groupNameLabel.textContent = groupData.name || "Tonight’s Group";
 
-      groupData.members.forEach(member => {
+      (groupData.members || []).forEach(member => {
         const div = document.createElement("div");
         div.className = "member";
 
@@ -153,7 +155,7 @@
     // Initial load
     loadGroup();
 
-    // Auto-refresh every 3 seconds (for live location + group updates)
+    // Auto-refresh every 3 seconds
     setInterval(loadGroup, 3000);
   </script>
 </body>
