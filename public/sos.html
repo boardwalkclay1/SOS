@@ -110,7 +110,10 @@
     <button onclick="goToSettings()">Settings</button>
   </nav>
 
-  <!-- NEW: global app logic -->
+  <!-- Load PocketBase browser SDK FIRST -->
+  <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+
+  <!-- Then load your global app logic -->
   <script src="app.js"></script>
 
   <script>
