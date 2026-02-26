@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TogetherSafe</title>
 
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="icons/sos.png" />
+
+  <!-- Social Preview -->
+  <meta property="og:title" content="TogetherSafe – Stay Connected. Stay Protected." />
+  <meta property="og:description" content="Live location, SOS alerts, and group safety tools built for women who go out together and refuse to be unprotected." />
+  <meta property="og:image" content="https://sosos.online/icons/sos.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sosos.online/" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="TogetherSafe – Stay Connected. Stay Protected." />
+  <meta name="twitter:description" content="Your group. Your night. Your safety." />
+  <meta name="twitter:image" content="https://sosos.online/icons/sos.png" />
+
   <link rel="manifest" href="/manifest.json" />
 
   <style>
@@ -20,28 +35,60 @@
       justify-content: center;
       align-items: center;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background Image */
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("icons/sos.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.22;
+      z-index: -2;
+    }
+
+    /* Dark overlay */
+    body::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.95));
+      z-index: -1;
     }
 
     h1 {
-      font-size: 2.8rem;
+      font-size: 3rem;
       margin-bottom: 10px;
       font-weight: bold;
+      letter-spacing: 1px;
     }
 
     .tagline {
-      opacity: 0.85;
+      opacity: 0.9;
       margin-bottom: 20px;
       max-width: 80%;
       line-height: 1.4rem;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
+      font-weight: 500;
     }
 
     .explain {
-      opacity: 0.7;
-      font-size: 1rem;
+      opacity: 0.8;
+      font-size: 1.05rem;
       max-width: 85%;
       margin-bottom: 35px;
-      line-height: 1.5rem;
+      line-height: 1.6rem;
     }
 
     input {
@@ -51,6 +98,12 @@
       border: none;
       margin-bottom: 20px;
       font-size: 1.1rem;
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    input::placeholder {
+      color: #ccc;
     }
 
     button {
@@ -63,6 +116,8 @@
       font-size: 1.2rem;
       cursor: pointer;
       margin-bottom: 20px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
     }
 
     button:hover {
@@ -70,10 +125,19 @@
     }
 
     .subtext {
-      opacity: 0.6;
+      opacity: 0.7;
       font-size: 0.9rem;
       margin-top: -10px;
       margin-bottom: 20px;
+    }
+
+    form button {
+      background: #0070ba;
+      margin-top: 5px;
+    }
+
+    form button:hover {
+      background: #0a84d0;
     }
   </style>
 </head>
@@ -85,19 +149,18 @@
   <p class="tagline">Your group. Your night. Your safety.</p>
 
   <p class="explain">
-    TogetherSafe keeps your circle connected and protected during nights out,
-    road trips, festivals, and everyday life. Create a quick profile, form a group,
-    and everyone can see each other’s live location, distance, and SOS alerts in real time.
+    Built for women who go out together and refuse to be unprotected.
+    TogetherSafe keeps your circle connected with live location,
+    distance tracking, and SOS alerts that reach your group instantly.
     <br><br>
-    To unlock full access, TogetherSafe runs on a simple $5/month subscription that
-    keeps the servers live, the maps updating, and your group protected.
+    Stay close. Stay aware. Stay safe — together.
   </p>
 
   <input id="contactInput" type="text" placeholder="Phone number or email" />
 
   <button onclick="continueApp()">Create My Profile</button>
 
-  <p class="subtext">After creating your profile, you’ll be prompted to activate your $5/month subscription.</p>
+  <p class="subtext">After creating your profile, you’ll activate your $5/month subscription.</p>
 
   <!-- PayPal Subscription Button -->
   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="width:80%;">
@@ -113,7 +176,6 @@
   <script src="/app.js"></script>
 
   <script>
-    // Auto-login if profile exists
     const savedProfile = window.App?.getProfile();
     if (savedProfile) {
       window.location.href = "home.html";
@@ -136,7 +198,6 @@
       window.location.href = "profile.html";
     }
 
-    // Register service worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/service-worker.js");
     }
