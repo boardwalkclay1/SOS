@@ -77,9 +77,9 @@
       border-radius: 999px;
       font-size: 0.75rem;
     }
-    .in-range { background: #163d1f; color: #7dff9a; } /* <=10 ft green */
-    .weak { background: #102b5b; color: #7db5ff; }     /* <=30 ft blue */
-    .out-range { background: #3d1616; color: #ff7d7d; }/* >30 ft red */
+    .in-range { background: #163d1f; color: #7dff9a; }
+    .weak { background: #102b5b; color: #7db5ff; }
+    .out-range { background: #3d1616; color: #ff7d7d; }
 
     nav {
       display: flex;
@@ -117,9 +117,15 @@
     <button onclick="goToSettings()">Settings</button>
   </nav>
 
+  <!-- Load Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""></script>
+
+  <!-- Load PocketBase SDK FIRST -->
+  <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+
+  <!-- Then load your global logic -->
   <script src="app.js"></script>
 
   <script>
