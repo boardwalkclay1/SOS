@@ -1,4 +1,3 @@
-// public/app.js
 (function () {
   const PB_URL = "https://pocketbase-production-289f.up.railway.app";
   const pb = new PocketBase(PB_URL);
@@ -97,8 +96,8 @@
   async function logSOSEventPB(event) {
     try {
       await pb.collection("sos_events").create({
-        group_id: event.groupId,
-        user_id: event.senderId,
+        group_id: event.groupPbId,
+        user_id: event.senderPbId,
         message: event.type,
         location: event.location || null,
       });
@@ -112,7 +111,7 @@
 
     try {
       const list = await pb.collection("group_members").getList(1, 1, {
-        filter: `group_id="${group.pbId}" && user_id="${profile.pbId}"`,
+        filter: `group_id="${group.pbId}" AND user_id="${profile.pbId}"`,
       });
 
       if (!list.items.length) return;
@@ -221,12 +220,14 @@
     const group = getGroup();
 
     if (!profile) return { success: false, message: "No profile" };
-    if (!group?.id) return { success: false, message: "No active group" };
+    if (!group?.pbId) return { success: false, message: "No active group" };
 
     const event = {
       type,
       senderId: profile.id,
+      senderPbId: profile.pbId,
       groupId: group.id,
+      groupPbId: group.pbId,
       createdAt: new Date().toISOString(),
       location: profile.location || null,
     };
@@ -316,7 +317,7 @@
         await upsertProfile(updated);
 
         const group = getGroup();
-        if (group?.id) {
+        if (group?.pbId) {
           await updateMemberLocationInGroupPB(group, updated, loc);
         }
       },
@@ -330,10 +331,10 @@
   // ------------------------------
   async function fetchGroupState() {
     const group = getGroup();
-    if (!group?.id) return null;
+    if (!group?.pbId) return null;
 
     try {
-      const res = await fetch(`/api/group/${group.id}/state`);
+      const res = await fetch(`/api/group/${group.pbId}/state`);
       const data = await res.json();
 
       if (!data.success) return null;
