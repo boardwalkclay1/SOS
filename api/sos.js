@@ -1,11 +1,14 @@
 const express = require("express");
+const PocketBase = require("pocketbase/cjs");
 
 module.exports = (pb) => {
   const router = express.Router();
 
-  // CREATE SOS EVENT
+  const PB_URL = "https://pocketbase-production-289f.up.railway.app";
+  const client = pb || new PocketBase(PB_URL);
+
   router.post("/", async (req, res) => {
-    const { groupId, userId, message } = req.body;
+    const { groupId, userId, message, location } = req.body;
 
     if (!groupId || !userId) {
       return res.status(400).json({
@@ -15,10 +18,11 @@ module.exports = (pb) => {
     }
 
     try {
-      const record = await pb.collection("sos_events").create({
+      const record = await client.collection("sos_events").create({
         group_id: groupId,
         user_id: userId,
         message: message || "SOS triggered",
+        location: location || null,
       });
 
       res.json({ success: true, event: record });
