@@ -99,7 +99,10 @@
     <button onclick="goToSettings()">Settings</button>
   </nav>
 
-  <!-- NEW: global logic -->
+  <!-- Load PocketBase browser SDK FIRST -->
+  <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+
+  <!-- Then load your global logic -->
   <script src="app.js"></script>
 
   <script>
@@ -120,7 +123,7 @@
       groupNameLabel.textContent = group.name || "Tonight’s Group";
       groupNameInput.value = group.name || "";
 
-      group.members.forEach(member => {
+      (group.members || []).forEach(member => {
         const div = document.createElement("div");
         div.className = "member";
         div.textContent = member.name || member.contact || "Unknown";
@@ -167,8 +170,6 @@
     function goToSettings() { window.location.href = "settings.html"; }
 
     renderGroup();
-
-    // Auto-refresh every 3 seconds for live updates
     setInterval(renderGroup, 3000);
   </script>
 </body>
