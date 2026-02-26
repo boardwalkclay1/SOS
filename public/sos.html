@@ -5,64 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TogetherSafe – SOS</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #0d0d0d;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-    header {
-      padding: 16px;
-      text-align: center;
-      border-bottom: 1px solid #222;
-    }
-    main {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-    }
-    .sos-card {
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      border: none;
-      width: 100%;
-      text-align: left;
-      color: #fff;
-      cursor: pointer;
-    }
-    .sos-title {
-      font-size: 1.1rem;
-      margin-bottom: 4px;
-    }
-    .sos-sub {
-      font-size: 0.85rem;
-      opacity: 0.7;
-    }
-    .lvl1 { background: #163d1f; }
-    .lvl2 { background: #3d3516; }
-    .lvl3 { background: #3d1616; }
-    .lvl4 { background: #5b1010; }
-    .lvl5 { background: #102b5b; }
-    .lvl6 { background: #153b4a; }
+  <!-- Global cinematic stylesheet -->
+  <link rel="stylesheet" href="/styles.css">
 
-    nav {
-      display: flex;
-      border-top: 1px solid #222;
-    }
-    nav button {
-      flex: 1;
-      padding: 12px;
-      background: #0d0d0d;
-      color: #fff;
-      border: none;
-      font-size: 0.9rem;
-    }
-  </style>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="icons/sos.png" />
 </head>
 
 <body>
@@ -128,7 +75,6 @@
       }
     }
 
-    // Navigation
     function goToHome() { window.location.href = "home.html"; }
     function goToSOS() { window.location.href = "sos.html"; }
     function goToProfile() { window.location.href = "profile.html"; }
