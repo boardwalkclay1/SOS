@@ -106,6 +106,10 @@
     <button type="submit">Activate $5/month Subscription</button>
   </form>
 
+  <!-- Load PocketBase SDK FIRST -->
+  <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+
+  <!-- Then load your global app logic -->
   <script src="/app.js"></script>
 
   <script>
@@ -129,7 +133,6 @@
         return;
       }
 
-      // After profile creation, user goes to subscription or profile setup
       window.location.href = "profile.html";
     }
 
