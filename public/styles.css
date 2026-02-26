@@ -1,0 +1,144 @@
+/* GLOBAL RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* GLOBAL BACKGROUND */
+body {
+  background: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Fullscreen background image */
+body::before {
+  content: "";
+  position: fixed; /* stays locked behind everything */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("/icons/sos.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.22;
+  z-index: -2;
+}
+
+/* Dark overlay for readability */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(0,0,0,0.75), rgba(0,0,0,0.95));
+  z-index: -1;
+}
+
+/* HEADERS */
+header {
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* MAIN CONTENT */
+main {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* INPUTS */
+input, textarea {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #ccc;
+}
+
+/* BUTTONS */
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  background: #ff2d55;
+  color: #fff;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #ff4d6d;
+}
+
+button.secondary {
+  background: rgba(255,255,255,0.15);
+}
+
+/* NAV BAR */
+nav {
+  display: flex;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+nav button {
+  flex: 1;
+  background: transparent;
+  border-radius: 0;
+  margin: 0;
+  padding: 14px;
+  font-size: 0.9rem;
+}
+
+/* CARDS (SOS, MEMBERS, ETC.) */
+.card, .sos-card, .member {
+  background: rgba(0,0,0,0.4);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(4px);
+}
+
+/* BADGES */
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.in-range { background: #163d1f; color: #7dff9a; }
+.weak { background: #102b5b; color: #7db5ff; }
+.out-range { background: #3d1616; color: #ff7d7d; }
+
+/* FULLSCREEN MAP FIX */
+#mapContainer.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  z-index: 999;
+  border-radius: 0;
+}
