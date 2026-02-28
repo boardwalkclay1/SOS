@@ -1,11 +1,8 @@
+// api/sos.js (PostgreSQL version)
 const express = require("express");
-const PocketBase = require("pocketbase/cjs");
 
-module.exports = (pb) => {
+module.exports = (db) => {
   const router = express.Router();
-
-  const PB_URL = "https://pocketbase-production-289f.up.railway.app";
-  const client = pb || new PocketBase(PB_URL);
 
   router.post("/", async (req, res) => {
     const { groupId, userId, message, location } = req.body;
@@ -18,16 +15,20 @@ module.exports = (pb) => {
     }
 
     try {
-      const record = await client.collection("sos_events").create({
-        group_id: groupId,
-        user_id: userId,
-        message: message || "SOS triggered",
-        location: location || null,
-      });
+      await db.query(
+        `INSERT INTO sos_events (group_id, profile_id, message, location)
+         VALUES ($1, $2, $3, $4)`,
+        [
+          groupId,
+          userId,
+          message || "SOS triggered",
+          location || null
+        ]
+      );
 
-      res.json({ success: true, event: record });
+      res.json({ success: true });
     } catch (err) {
-      console.error("POCKETBASE SOS ERROR:", err);
+      console.error("POSTGRES SOS ERROR:", err);
       res.status(500).json({
         success: false,
         error: err.message,
